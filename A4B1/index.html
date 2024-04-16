@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,11 +13,86 @@
 
     <!-- 제이쿼리 가져오기 -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <!-- main.css 스타일시트 가져오기 -->
+    <link rel="stylesheet" href="main.css" />
+
+    <script type="module">
+        // Firebase SDK 라이브러리 가져오기
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { collection, addDoc, query, where } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCwpweAcn_6QptJ76XSG5A19p-mMjOjAAE",
+            authDomain: "a4b1-f4ba4.firebaseapp.com",
+            projectId: "a4b1-f4ba4",
+            storageBucket: "a4b1-f4ba4.appspot.com",
+            messagingSenderId: "166828669253",
+            appId: "1:166828669253:web:e17f765e7a791e34a9262c",
+            measurementId: "G-Q766YQ7X7K"
+        };
+
+        // Firebase 인스턴스 초기화
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Firebase에서 User 데이터 가져와서 멤버카드 생성
+        let docs = await getDocs(collection(db, "User"));
+        let i = 1;
+        docs.forEach((doc) => {
+            let row = doc.data();
+
+            let image = row['image'];
+            let title = row['title'];
+            let name = row['name'];
+            let mbti = row['mbti'];
+
+            let temp_html = `<div class="member-card${i}" data-member-id="sampleID">
+                    <div class="card h-100">
+                        <div class="">
+                            <img src="${image}"
+                            class="card-img-top">
+                        </div>
+                        
+                        <div class="card-body">
+                            <h5 class="card-title"><span id="title">${title}</span></h5>
+                            <p class="card-text">이름 : <span id="name">${name}</span></p>
+                            <p class="card-text">MBTI : <span id="mbti">${mbti}</span></p>
+                        </div>
+                    </div>
+                </div>`;
+            $('#card').append(temp_html);
+            i = i + 1;
+        });
+
+        // 멤버카드 클릭 시 firebase에서 User 데이터를 get
+        $(".member-card1, .member-card2, .member-card3, .member-card4, .member-card5").click(async function () {
+            let name = $(this).find('span:eq(1)').text;
+
+            let docs = await getDocs(query(collection(db, "User"), where("name", "==", name)));
+            docs.forEach((doc) => {
+                let row = doc.data();
+                let mbti = row['mbti'];
+            });
+        })
+    </script>
 </head>
+
 <body>
     <header></header>
     <nav></nav>
-    <div></div>
+    <div>
+        <div class="member-card-box">
+            <div id="card" class="row row-cols-1 row-cols-md-5 g-5">
+                <!-- member-cards -->
+            </div>
+
+        </div>
+    </div>
     <footer></footer>
 </body>
+
 </html>
