@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>A4B1</title>
+
+    <!-- 부트스트랩 가져오기 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+
+    <!-- 제이쿼리 가져오기 -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <!-- main.css 스타일시트 가져오기 -->
+    <link rel="stylesheet" href="main.css" />
+
+    <script type="module">
+        // Firebase SDK 라이브러리 가져오기
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { collection, addDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        // Firebase 구성 정보 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyCwpweAcn_6QptJ76XSG5A19p-mMjOjAAE",
+            authDomain: "a4b1-f4ba4.firebaseapp.com",
+            projectId: "a4b1-f4ba4",
+            storageBucket: "a4b1-f4ba4.appspot.com",
+            messagingSenderId: "166828669253",
+            appId: "1:166828669253:web:e17f765e7a791e34a9262c",
+            measurementId: "G-Q766YQ7X7K"
+        };
+
+        // Firebase 인스턴스 초기화
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Firebase에서 User 데이터 가져와서 멤버카드 생성
+        let docs = await getDocs(collection(db, "User"));
+        docs.forEach((doc) => {
+            let row = doc.data();
+
+            let id = doc.id;
+            let image = row['image'];
+            let title = row['title'];
+            let name = row['name'];
+            let mbti = row['mbti'];
+            /*#9 Css 구현을 위해 class="photo" 추가 (사진 크기 맞춤)*/
+            let temp_html = `<div class="member-card" data-member-id="${id}" data-bs-toggle="modal" data-bs-target="#myModal">
+                    <div class="card h-100">
+                        <div class="">
+                            <img class="photo" src="${image}"
+                            class="card-img-top">
+                        </div>
+                        
+                        <div class="card-body">
+                            <h5 class="card-title"><span id="title">${title}</span></h5>
+                            <p class="card-text">이름 : <span id="name">${name}</span></p>
+                            <p class="card-text">MBTI : <span id="mbti">${mbti}</span></p>
+                        </div>
+                    </div>
+                </div>`;
+            $('#card').append(temp_html);
+        });
+
+        // 모달 열기 이벤트 리스너
+        $('#myModal').on('shown.bs.modal', async function (event) {
+            // 이벤트가 발생한 요소(멤버 카드) 가져오기
+            let memberCard = $(event.relatedTarget);
+
+            // data-member-id 속성 값 가져오기
+            let memberId = memberCard.data('member-id');
+
+            // Firebase에서 데이터 가져오기
+            let docs = await getDocs(collection(db, "User"));
+
+            docs.forEach((doc) => {
+                let row = doc.data();
+                let userId = doc.id;
+
+                if (userId == memberId) {
+                    let title = row['title'];
+                    let image = row['image'];
+                    let name = row['name'];
+                    let mbti = row['mbti'];
+                    let strengths = row['strengths'];
+                    let weakness = row['weakness'];
+                    let style = row['style'];
+                    let goal = row['goal'];
+                    let blog = row['blog'];
+
+                    let image_temp_html = `
+                    <img src="${image}" class="img-thumbnail" width="500px" />
+                    `;
+
+                    $('#image-box').empty();
+                    $('#image-box').append(image_temp_html);
+
+                    // 모달에 데이터 적용
+                    $('#exampleModalLabel').text(title); // 제목 적용
+                    $('#name').text(name); // 이름 적용
+                    $('#mbti').text(mbti); // MBTI 적용
+                    $('#strengths').text(strengths); // 장점 적용
+                    $('#weakness').text(weakness); // 단점 적용
+                    $('#style').text(style); // 협업 스타일 적용
+                    $('#goal').text(goal); // 최종 목표 적용
+                    $('#blog').text(blog); // 블로그 주소 적용
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">제목</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6" id="image-box"></div>
+                        <div class="col-md-6" id="table-box">
+                            <table class="table table-striped">
+                                <tr>
+                                    <th scope="row">이름</th>
+                                    <td id="name">${name}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">MBTI</th>
+                                    <td id="mbti">${mbti}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">장점</th>
+                                    <td id="strengths">${strengths}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">단점</th>
+                                    <td id="weakness">${weakness}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">협업 스타일</th>
+                                    <td id="style">${style}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">최종 목표</th>
+                                    <td id="goal">${goal}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">블로그 주소</th>
+                                    <td id="blog">${blog}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div>
+                            <!-- 댓글 부분 div -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <header class="mytitle">
+        <h1>A4B1을 소개 합니다.</h1>
+    </header>
+
+    <div>
+        <div>
+            <!-- 팀 소개 칸 -->
+        </div>
+
+        <div class="member-card-box">
+            <div id="card" class="row row-cols-1 row-cols-md-5 g-5">
+                <!-- member-cards -->
+            </div>
+
+        </div>
+    </div>
+
+    <footer class="capyft">
+        <p calss="footname">© 2024 A4B1 team miniproject! thank you!</p>
+    </footer>
+    
+</body>
+</html>
