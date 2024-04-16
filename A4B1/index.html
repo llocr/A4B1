@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -52,11 +51,11 @@
             let title = row['title'];
             let name = row['name'];
             let mbti = row['mbti'];
-
+            /*#9 Css 구현을 위해 class="photo" 추가 (사진 크기 맞춤)*/
             let temp_html = `<div class="member-card" data-member-id="${id}" data-bs-toggle="modal" data-bs-target="#myModal">
                     <div class="card h-100">
-                        <div class="">
-                            <img src="${image}"
+                        <div>
+                            <img class="photo" src="${image}"
                             class="card-img-top">
                         </div>
                         
@@ -116,30 +115,7 @@
             });
         });
     </script>
-
-    <style>
-        /* 팀소개div style */
-        .box1 {
-            width: 800px;
-            margin: 20px auto 0px auto;
-            border: 2px solid gray;
-            border-radius: 20px;
-            padding: 40px;
-        }
-
-        .text-body-emphasis {
-            text-align: center;
-            font-size: 40px;
-        }
-
-        .lead {
-            text-align: center;
-        }
-    </style>
-
-
 </head>
-
 <body>
     <!-- Modal -->
     <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -200,26 +176,6 @@
     <div>
         <div>
             <!-- 팀 소개 칸 -->
-
-            <div>
-                <!-- 팀소개div -->
-                <h1 class="text-body-emphasis">A4B1 우리 팀의 특별한 점 </h1>
-
-                <div class="box1">
-
-                    <p class="lead">
-                        👨‍👨‍👦남자 4명 👩여자 1명
-                    </p>
-                    <p class="lead">
-                        😳내향형 4명 😁외향형 1명
-                    </p>
-                    <p class="lead">
-                        🅰️A형 4명 🅱️B형 1명
-                    </p>
-                </div>
-            </div>
-
-
         </div>
 
         <div class="member-card-box">
@@ -233,7 +189,6 @@
     <footer class="capyft">
         <p calss="footname">© 2024 A4B1 team miniproject! thank you!</p>
     </footer>
-
+    
 </body>
-
 </html>
