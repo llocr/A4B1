@@ -50,11 +50,11 @@
             let title = row['title'];
             let name = row['name'];
             let mbti = row['mbti'];
-            /*#9 Css 구현을 위해 class="photo" 추가 (사진 크기 맞춤)*/
+
             let temp_html = `<div class="member-card" data-member-id="${id}" data-bs-toggle="modal" data-bs-target="#myModal">
                     <div class="card h-100">
-                        <div>
-                            <img class="photo" src="${image}"
+                        <div class="">
+                            <img src="${image}"
                             class="card-img-top">
                         </div>
                         
@@ -78,6 +78,9 @@
 
             // Firebase에서 데이터 가져오기
             let docs = await getDocs(collection(db, "User"));
+
+            // 모달이 열릴 때마다 댓글을 비워줌
+            $('#modal-comments').empty();
 
             docs.forEach((doc) => {
                 let row = doc.data();
@@ -110,54 +113,24 @@
                     $('#style').text(style); // 협업 스타일 적용
                     $('#goal').text(goal); // 최종 목표 적용
                     $('#blog').text(blog); // 블로그 주소 적용
+
+                    //댓글달기 버튼에 아이디값주기
+                    $("#write-comment").attr("data-commentId", userId);
                 }
             });
-        });
 
-        //댓글달기 팝업 뛰우기, 닫기
-        $("#write-comment").click(function () {
-            $("#comment-box").show();
-        });
+            // 댓글 불러오기
+            let docs2 = await getDocs(collection(db, "Comments"));
+            docs2.forEach((doc) => {
+                let row = doc.data();
 
-        $(".close").click(function () {
-            $("#comment-box").hide();
-        });
+                let commentId = doc.id;
+                let nickname = row['nickname'];
+                let password = row['password'];
+                let comment = row['comment'];
 
-        //댓글 작성 후 저장
-        $("#saveBtn").click(async function (event) {
-            // 이벤트가 발생한 요소(멤버 카드) 가져오기
-            let memberCard = $(event.relatedTarget);
-            console.log(memberCard);
-
-            let nickname = $("#nickname").val();
-            let password = $("#password").val();
-            let comment = $("#comment").val();
-
-            if (nickname === '' || password === '' || comment === '') { //데이터 입력 확인
-                alert("정보를 모두 입력해주세요.")
-            } else {
-                let doc = {
-                    'nickname': nickname,
-                    'password': password,
-                    'comment': comment
-                }
-                await addDoc(collection(db, "Comments"), doc);
-                alert('저장 완료!');
-                window.location.reload();
-            }
-        });
-
-        // 댓글 불러오기
-        let docs2 = await getDocs(collection(db, "Comments"));
-        docs2.forEach((doc) => {
-            let row = doc.data();
-
-            let commentId = doc.id;
-            let nickname = row['nickname'];
-            let password = row['password'];
-            let comment = row['comment'];
-
-            let temp_html = `
+                if (memberId == row['parentId']) {
+                    let temp_html = `
             <div class="d-flex text-body-secondary pt-3">
                 <svg class="bd-placeholder-img flex-shrink-0 me-2 rounded" width="32" height="32" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: 32x32" preserveAspectRatio="xMidYMid slice" focusable="false"><title>Placeholder</title><rect width="100%" height="100%" fill="#007bff"></rect><text x="50%" y="50%" fill="#007bff" dy=".3em">32x32</text></svg>
                 <div class="pb-3 mb-0 small lh-sm border-bottom w-100">
@@ -168,11 +141,46 @@
                 <span class="d-block">${comment}</span>
                 </div>
             </div>`;
-            $('#modal-comments').append(temp_html);
+                    $('#modal-comments').append(temp_html);
+                }
+            });
+        });
+
+        //댓글달기 팝업 뛰우기, 닫기 + saveBtn에 id값 부여
+        $("#write-comment").click(function () {
+            let userId = $(this).attr("data-commentId");
+            $("#saveBtn").attr("data-saveId", userId);
+            $("#comment-box").show();
+        });
+
+        $(".close").click(function () {
+            $("#comment-box").hide();
+        });
+
+        //댓글 작성 후 저장
+        $("#saveBtn").click(async function (event) {
+            let userId = $(this).attr("data-saveId");
+            let nickname = $("#nickname").val();
+            let password = $("#password").val();
+            let comment = $("#comment").val();
+
+            if (nickname === '' || password === '' || comment === '') { //데이터 입력 확인
+                alert("정보를 모두 입력해주세요.")
+            } else {
+                let doc = {
+                    'parentId': userId,
+                    'nickname': nickname,
+                    'password': password,
+                    'comment': comment
+                }
+                await addDoc(collection(db, "Comments"), doc);
+                alert('저장 완료!');
+                window.location.reload();
+            }
         });
 
         //댓글 삭제 팝업 열고 닫기
-        $(".deleteBtn").click(async function () {
+        $(document).on("click", ".deleteBtn", async function () {
             let commentId = $(this).attr("data-id");
             let password = $(this).attr("data-password");
             $("#deleteBtn").attr("data-id", commentId);
@@ -200,6 +208,7 @@
         });
     </script>
 </head>
+
 
 <style>
     /* 팀소개div style */
@@ -256,7 +265,7 @@
                             <textarea class="form-control" id="comment" rows="3" placeholder="텍스트를 입력해주세요."></textarea>
                         </div>
                         <div>
-                            <button id="saveBtn">저장</button>
+                            <button id="saveBtn" data-saveId="${}">저장</button>
                             <button class="close">닫기</button>
                         </div>
                     </div>
@@ -309,50 +318,11 @@
                         <div>
                             <!-- 댓글 부분 div -->
                             <div>
-                                <h2>댓글</h2>
-                                <button id="write-comment">댓글달기</button>
+                                <button id="write-comment" data-commentId="${}">댓글달기</button>
                             </div>
                             <div id="modal-comments" class="my-3 p-3 bg-body rounded shadow-sm">
                                 <h6 class="border-bottom pb-2 mb-0">댓글</h6>
-
-                                <!-- <div class="d-flex text-body-secondary pt-3">
-                                    <svg class="bd-placeholder-img flex-shrink-0 me-2 rounded" width="32" height="32"
-                                        xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: 32x32"
-                                        preserveAspectRatio="xMidYMid slice" focusable="false">
-                                        <title>Placeholder</title>
-                                        <rect width="100%" height="100%" fill="#007bff"></rect><text x="50%" y="50%"
-                                            fill="#007bff" dy=".3em">32x32</text>
-                                    </svg>
-                                    <div class="pb-3 mb-0 small lh-sm border-bottom w-100">
-                                        <div class="d-flex justify-content-between">
-                                            <strong class="text-gray-dark">닉네임</strong>
-                                            <a href="#">삭제하기</a>
-                                        </div>
-                                        <span class="d-block">IT는 현대 사회에서 핵심적인 역할을 합니다.</span>
-                                    </div>
-                                </div>
-
-                                <div class="d-flex text-body-secondary pt-3">
-                                    <svg class="bd-placeholder-img flex-shrink-0 me-2 rounded" width="32" height="32"
-                                        xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: 32x32"
-                                        preserveAspectRatio="xMidYMid slice" focusable="false">
-                                        <title>Placeholder</title>
-                                        <rect width="100%" height="100%" fill="#007bff"></rect><text x="50%" y="50%"
-                                            fill="#007bff" dy=".3em">32x32</text>
-                                    </svg>
-                                    <div class="pb-3 mb-0 small lh-sm border-bottom w-100">
-                                        <div class="d-flex justify-content-between">
-                                            <strong class="text-gray-dark">Full Name</strong>
-                                            <a href="#">삭제하기</a>
-                                        </div>
-                                        <span
-                                            class="d-block">@username@username@username@username@username@username@username</span>
-                                    </div>
-                                </div>
-
-                                <small class="d-block text-end mt-3">
-                                    <a href="#">All suggestions</a>
-                                </small> -->
+                            </div>
                             </div>
                         </div>
                     </div>
