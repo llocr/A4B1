@@ -23,9 +23,7 @@
     <script type="module">
         // Firebase SDK 라이브러리 가져오기
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-        import { collection, addDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-        import { getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
         // Firebase 구성 정보 설정
         const firebaseConfig = {
@@ -115,6 +113,91 @@
                 }
             });
         });
+
+        //댓글달기 팝업 뛰우기, 닫기
+        $("#write-comment").click(function () {
+            $("#comment-box").show();
+        });
+
+        $(".close").click(function () {
+            $("#comment-box").hide();
+        });
+
+        //댓글 작성 후 저장
+        $("#saveBtn").click(async function (event) {
+            // 이벤트가 발생한 요소(멤버 카드) 가져오기
+            let memberCard = $(event.relatedTarget);
+            console.log(memberCard);
+
+            let nickname = $("#nickname").val();
+            let password = $("#password").val();
+            let comment = $("#comment").val();
+
+            if (nickname === '' || password === '' || comment === '') { //데이터 입력 확인
+                alert("정보를 모두 입력해주세요.")
+            } else {
+                let doc = {
+                    'nickname': nickname,
+                    'password': password,
+                    'comment': comment
+                }
+                await addDoc(collection(db, "Comments"), doc);
+                alert('저장 완료!');
+                window.location.reload();
+            }
+        });
+
+        // 댓글 불러오기
+        let docs2 = await getDocs(collection(db, "Comments"));
+        docs2.forEach((doc) => {
+            let row = doc.data();
+
+            let commentId = doc.id;
+            let nickname = row['nickname'];
+            let password = row['password'];
+            let comment = row['comment'];
+
+            let temp_html = `
+            <div class="d-flex text-body-secondary pt-3">
+                <svg class="bd-placeholder-img flex-shrink-0 me-2 rounded" width="32" height="32" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: 32x32" preserveAspectRatio="xMidYMid slice" focusable="false"><title>Placeholder</title><rect width="100%" height="100%" fill="#007bff"></rect><text x="50%" y="50%" fill="#007bff" dy=".3em">32x32</text></svg>
+                <div class="pb-3 mb-0 small lh-sm border-bottom w-100">
+                <div class="d-flex justify-content-between">
+                    <strong class="text-gray-dark">${nickname}</strong>
+                    <a class="deleteBtn" href="#" data-id="${commentId}" data-password="${password}">삭제하기</a>
+                </div>
+                <span class="d-block">${comment}</span>
+                </div>
+            </div>`;
+            $('#modal-comments').append(temp_html);
+        });
+
+        //댓글 삭제 팝업 열고 닫기
+        $(".deleteBtn").click(async function () {
+            let commentId = $(this).attr("data-id");
+            let password = $(this).attr("data-password");
+            $("#deleteBtn").attr("data-id", commentId);
+            $("#deleteBtn").attr("data-password", password);
+            $("#delete-box").show();
+        });
+
+        $(".close").click(function () {
+            $("#delete-box").hide();
+        });
+
+        //댓글 삭제하기
+        $("#deleteBtn").click(async function () {
+            let commentId = $(this).attr("data-id");
+            let password = $(this).attr("data-password");
+            let checkPassword = $("#check-password").val();
+
+            if (checkPassword != password) { //데이터 입력 확인
+                alert("비밀번호를 제대로 입력해주세요.");
+            } else {
+                await deleteDoc(doc(db, "Comments", commentId));
+                alert('삭제 완료!');
+                window.location.reload();
+            }
+        });
     </script>
 </head>
 
@@ -136,6 +219,15 @@
     .lead {
         text-align: center;
     }
+
+    /* 댓글 */
+    .comment-box {
+        display: none;
+        position: absolute;
+        padding: 3rem;
+        border-radius: 1rem;
+        background: coral;
+    }
 </style>
 
 <body>
@@ -147,7 +239,39 @@
                     <h1 class="modal-title fs-5" id="exampleModalLabel">제목</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="
+                display: flex;
+                justify-content: center;
+                align-items: center;">
+
+                    <!-- 댓글 팝업 -->
+                    <div id="comment-box" class="comment-box">
+                        <div class="mb-3">
+                            <input type="email" class="form-control" id="nickname" placeholder="닉네임">
+                        </div>
+                        <div class="mb-3">
+                            <input type="email" class="form-control" id="password" placeholder="비밀번호">
+                        </div>
+                        <div class="mb-3">
+                            <textarea class="form-control" id="comment" rows="3" placeholder="텍스트를 입력해주세요."></textarea>
+                        </div>
+                        <div>
+                            <button id="saveBtn">저장</button>
+                            <button class="close">닫기</button>
+                        </div>
+                    </div>
+
+                    <!-- 삭제 팝업 -->
+                    <div id="delete-box" class="comment-box">
+                        <div class="mb-3">
+                            <input type="email" class="form-control" id="check-password" placeholder="비밀번호">
+                        </div>
+                        <div>
+                            <button id="deleteBtn">삭제</button>
+                            <button class="close">닫기</button>
+                        </div>
+                    </div>
+
                     <div class="row">
                         <div class="col-md-6" id="image-box"></div>
                         <div class="col-md-6" id="table-box">
@@ -184,6 +308,52 @@
                         </div>
                         <div>
                             <!-- 댓글 부분 div -->
+                            <div>
+                                <h2>댓글</h2>
+                                <button id="write-comment">댓글달기</button>
+                            </div>
+                            <div id="modal-comments" class="my-3 p-3 bg-body rounded shadow-sm">
+                                <h6 class="border-bottom pb-2 mb-0">댓글</h6>
+
+                                <!-- <div class="d-flex text-body-secondary pt-3">
+                                    <svg class="bd-placeholder-img flex-shrink-0 me-2 rounded" width="32" height="32"
+                                        xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: 32x32"
+                                        preserveAspectRatio="xMidYMid slice" focusable="false">
+                                        <title>Placeholder</title>
+                                        <rect width="100%" height="100%" fill="#007bff"></rect><text x="50%" y="50%"
+                                            fill="#007bff" dy=".3em">32x32</text>
+                                    </svg>
+                                    <div class="pb-3 mb-0 small lh-sm border-bottom w-100">
+                                        <div class="d-flex justify-content-between">
+                                            <strong class="text-gray-dark">닉네임</strong>
+                                            <a href="#">삭제하기</a>
+                                        </div>
+                                        <span class="d-block">IT는 현대 사회에서 핵심적인 역할을 합니다.</span>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex text-body-secondary pt-3">
+                                    <svg class="bd-placeholder-img flex-shrink-0 me-2 rounded" width="32" height="32"
+                                        xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: 32x32"
+                                        preserveAspectRatio="xMidYMid slice" focusable="false">
+                                        <title>Placeholder</title>
+                                        <rect width="100%" height="100%" fill="#007bff"></rect><text x="50%" y="50%"
+                                            fill="#007bff" dy=".3em">32x32</text>
+                                    </svg>
+                                    <div class="pb-3 mb-0 small lh-sm border-bottom w-100">
+                                        <div class="d-flex justify-content-between">
+                                            <strong class="text-gray-dark">Full Name</strong>
+                                            <a href="#">삭제하기</a>
+                                        </div>
+                                        <span
+                                            class="d-block">@username@username@username@username@username@username@username</span>
+                                    </div>
+                                </div>
+
+                                <small class="d-block text-end mt-3">
+                                    <a href="#">All suggestions</a>
+                                </small> -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -199,6 +369,7 @@
         <div>
             <div>
                 <!-- 팀 소개 칸 -->
+
 
                 <div>
                     <!-- 팀소개div -->
