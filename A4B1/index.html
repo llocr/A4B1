@@ -209,36 +209,6 @@
     </script>
 </head>
 
-
-<style>
-    /* 팀소개div style */
-    .box1 {
-        width: 800px;
-        margin: 20px auto 0px auto;
-        border: 2px solid gray;
-        border-radius: 20px;
-        padding: 40px;
-    }
-
-    .text-body-emphasis {
-        text-align: center;
-        font-size: 40px;
-    }
-
-    .lead {
-        text-align: center;
-    }
-
-    /* 댓글 */
-    .comment-box {
-        display: none;
-        position: absolute;
-        padding: 3rem;
-        border-radius: 1rem;
-        background: coral;
-    }
-</style>
-
 <body>
     <!-- Modal -->
     <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -317,18 +287,18 @@
                         </div>
                         <div>
                             <!-- 댓글 부분 div -->
-                            <div>
-                                <button id="write-comment" data-commentId="${}">댓글달기</button>
-                            </div>
-                            <div id="modal-comments" class="my-3 p-3 bg-body rounded shadow-sm">
+                            <div id="modal-comments" class="modal_comments my-3 p-3 bg-body rounded shadow-sm">
                                 <h6 class="border-bottom pb-2 mb-0">댓글</h6>
                             </div>
+                            <div class="write-bu">
+                                <button id="write-comment" class="write-comment" data-commentId="${}">댓글달기</button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
     </div>
 
     <header class="mytitle">
@@ -339,8 +309,6 @@
         <div>
             <div>
                 <!-- 팀 소개 칸 -->
-
-
                 <div>
                     <!-- 팀소개div -->
                     <h1 class="text-body-emphasis">A4B1 우리 팀의 특별한 점 </h1>
